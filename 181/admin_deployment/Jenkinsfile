@@ -11,7 +11,7 @@ pipeline{
 					sshPublisher(publishers: [sshPublisherDesc(configName: 'ansible server', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
 					
 					cd /etc/ansible/181/admin_deployment;
-          ansible-playbook admin.yml -i inventory.yml
+					ansible-playbook admin.yml -i inventory.yml
 					
 					''', execTimeout: 0, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
 				}
