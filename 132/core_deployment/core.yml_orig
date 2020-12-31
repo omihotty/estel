@@ -1,0 +1,97 @@
+-
+ name: This Job is for Deploying patch ((core and core lib))
+ hosts: '132'
+ vars:
+    date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+ tasks:
+    -
+     name: create today date folder for backup purpose
+     file:
+       path: /applogs/backup/{{ date }}
+       state: directory
+    
+    -
+###### (will create current date folder and copy backup) AND (COMMAND WILL NOT RUN IF blu_lib_merge DIR WILL EXIST IN BACKUP LOCATION) 
+     name: Taking backup of blu_lib_merge
+     command: cp -a /opt/estel/mcommerce/blu_lib_merge /applogs/backup/{{ date }}/
+     args:
+       creates: /applogs/backup/{{ date }}/blu_lib_merge
+    -
+###### (will create current date folder and copy backup) AND (COMMAND WILL NOT RUN IF glocm DIR WILL EXIST IN BACKUP LOCATION)
+     name: Taking backup of CORE_GLOCM
+     command: cp -a /opt/estel/mcommerce/core/core_glocm /applogs/backup/{{ date }}/
+     args:   
+       creates: /applogs/backup/{{ date }}/core_glocm
+    -
+###### (will create current date folder and copy backup) AND (COMMAND WILL NOT RUN IF schema_bluClound DIR WILL EXIST IN BACKUP LOCATION)
+     name: Taking backup of schema_bluClound
+     command: cp -a /opt/estel/mcommerce/schema_bluClound /applogs/backup/{{ date }}/
+     args:
+       creates: /applogs/backup/{{ date }}/schema_bluClound
+
+    -
+     name: copying schema_bluClound to dest server
+     copy:
+       src: /opt/estel/mcommerce/schema_bluClound
+       dest: /opt/estel/mcommerce/
+
+
+    -
+     name: copying blu_lib_merge to dest server
+     copy:
+       src: /opt/estel/mcommerce/blu_lib_merge
+       dest: /opt/estel/mcommerce/
+#      backup: true
+    
+    -
+     name: copying core_glocm to dest server
+     copy:
+       src: /opt/estel/mcommerce/core/core_glocm/{{ item }}
+       dest: /opt/estel/mcommerce/core/core_glocm/
+#       backup: true
+     with_items:
+       
+       - smtp.gmail.com
+       - excepMsg.prop
+       - en_transtype_mpss.prop
+       - en_excepMsg_mpss.prop
+       - EmailTemplate.vm
+       - ehcache.xsd
+       - ehcache.xml
+       - ehcache-terracotta.xml
+       - databean.xml
+       - core.xml
+       - aspect.xml
+       - core.jar
+       - common.xml
+       - data.xml
+       - system.properties
+       - en_transtype_glo.prop
+       - en_excepMsg_glo.prop
+
+    -
+     name: Replace Server IP, Port and DB
+     replace:
+       path: "{{ item.path }}"
+       regexp: "{{ item.regexp1 }}"
+       replace: "{{ item.replace }}"
+     with_items:
+       - { path: '/opt/estel/mcommerce/core/core_glocm/system.properties', regexp1: '192.168.0.87', replace: '10.152.89.132'}
+       - { path: '/opt/estel/mcommerce/core/core_glocm/system.properties', regexp1: '7016', replace: '7006'}
+       - { path: '/opt/estel/mcommerce/core/core_glocm/system.properties', regexp1: '7027', replace: '7017'}
+       - { path: '/opt/estel/mcommerce/core/core_glocm/system.properties', regexp1: 'fromEmailAdd=scripts@esteltelecom.com', replace: 'fromEmailAdd=esteltelecom@gloworld.com'}
+       - { path: '/opt/estel/mcommerce/core/core_glocm/system.properties', regexp1: '192.168.0.146', replace: '10.152.89.132'}
+       - { path: '/opt/estel/mcommerce/core/core_glocm/common.xml', regexp1: 'mail.esteltelecom.com', replace: '192.168.0.176'}
+
+
+    -
+     name: copy dbmodule.jar from backup to blu_lib_merge
+     command: cp -a /applogs/backup/{{ date }}/blu_lib_merge/dbmodule.jar /opt/estel/mcommerce/blu_lib_merge/
+    
+
+    -
+     name: RESTARTING COREENGINE ON REMOTE SERVER
+     script: bluengine.sh
+     register: result
+     failed_when: result.rc == 1
+

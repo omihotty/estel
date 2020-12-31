@@ -1,0 +1,68 @@
+-
+ name: This Job is for Deploying patch ((SUBSCRIBER PORTAL))
+ hosts: '132'
+ vars:
+    date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+ tasks:
+    -
+     name: creating today date folder for backup purpose
+     file:
+       path: /applogs/backup/{{ date }}
+       state: directory
+
+    -
+     name: creating war folder for backup purpose
+     file:
+       path: /applogs/backup/{{ date }}/war
+       state: directory
+
+    -
+     name: Taking backup of GloSubscriberPortal
+     command: cp -a /opt/estel/mcommerce/GloSubscriberPortal /applogs/backup/{{ date }}/
+     args:
+       creates: /applogs/backup/{{ date }}/GloSubscriberPortal
+
+    -
+     name: Taking backup of SubscriberManagementPortal.war
+     command: cp -a /usr/jboss-as-7.1.1.Final/node_web_admin/standalone/deployments/SubscriberManagementPortal.war /applogs/backup/{{ date }}/war/
+     args:
+       creates: /applogs/backup/{{ date }}/war/SubscriberManagementPortal.war
+
+    -
+     name: copying config files to dest server
+     copy:
+       src: /opt/estel/mcommerce/GloSubscriberPortal/conf/INI
+       dest: /opt/estel/mcommerce/GloSubscriberPortal/conf/
+       
+    -
+     name: copying labels.prop to dest server
+     copy:
+       src: /opt/estel/mcommerce/GloSubscriberPortal/conf/messages/labels.prop
+       dest: /opt/estel/mcommerce/GloSubscriberPortal/conf/messages/
+ 
+    -
+     name: Replace Server IP, Port and DB
+     replace:
+       path: "{{ item.path }}"
+       regexp: "{{ item.regexp1 }}"
+       replace: "{{ item.replace }}"
+     with_items:
+       - { path: '/opt/estel/mcommerce/GloSubscriberPortal/conf/INI/microbanking.property', regexp1: '192.168.0.87', replace: '10.152.89.132'}
+       - { path: '/opt/estel/mcommerce/GloSubscriberPortal/conf/INI/microbanking.property', regexp1: '192.168.0.146', replace: '10.152.89.132'}
+       - { path: '/opt/estel/mcommerce/GloSubscriberPortal/conf/INI/microbanking.property', regexp1: '41.203.71.73', replace: '10.152.89.132'}
+       - { path: '/opt/estel/mcommerce/GloSubscriberPortal/conf/INI/microbanking.property', regexp1: '7016', replace: '7006'}
+       - { path: '/opt/estel/mcommerce/GloSubscriberPortal/conf/INI/microbanking.property', regexp1: '7027', replace: '7017'}
+
+
+    -
+     name: copying SubscriberManagementPortal.war to dest server
+     copy:
+       src: /usr/jboss-as-7.1.1.Final/standalone/deployments/SubscriberManagementPortal.war
+       dest: /usr/jboss-as-7.1.1.Final/node_web_admin/standalone/deployments/
+
+    -
+     name: Deleting SubscriberManagementPortal.war.undeployed file on  dest server
+     script: subs.sh
+     register: result
+     failed_when: result.rc == 1
+

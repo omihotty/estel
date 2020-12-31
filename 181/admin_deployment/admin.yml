@@ -1,0 +1,68 @@
+-
+ name: This Job is for Deploying patch ((ADMIN PORTAL))
+ hosts: '181'
+ vars:
+    date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+ tasks:
+    -
+     name: creating today date folder for backup purpose
+     file:
+       path: /applogs/backup/{{ date }}
+       state: directory
+
+    -
+     name: creating war folder for backup purpose
+     file:
+       path: /applogs/backup/{{ date }}/war
+       state: directory
+
+    -
+     name: Taking backup of BluCloudMobileMoney
+     command: cp -a /opt/estel/mcommerce/BluCloudMobileMoney /applogs/backup/{{ date }}/
+     args:
+       creates: /applogs/backup/{{ date }}/BluCloudMobileMoney
+
+    -
+     name: Taking backup of AgentManagementSystem.war
+     command: cp -a /usr/jboss-as-7.1.1.Final/standalone/deployments/AgentManagementSystem.war /applogs/backup/{{ date }}/war/
+     args:
+       creates: /applogs/backup/{{ date }}/war/AgentManagementSystem.war
+
+    -
+     name: copying config files to dest server
+     copy:
+       src: /opt/estel/mcommerce/BluCloudMobileMoney/conf/glo/{{ item }}
+       dest: /opt/estel/mcommerce/BluCloudMobileMoney/conf/glo/
+     with_items:
+       - applicationContext.xml
+       - sms.properties
+       - system.properties
+       
+    -
+     name: copying labels.prop to dest server
+     copy:
+       src: /opt/estel/mcommerce/BluCloudMobileMoney/conf/glo/messages/labels.prop
+       dest: /opt/estel/mcommerce/BluCloudMobileMoney/conf/glo/messages/
+ 
+    -
+     name: Replace Server IP, Port and DB
+     replace:
+       path: "{{ item.path }}"
+       regexp: "{{ item.regexp1 }}"
+       replace: "{{ item.replace }}"
+     with_items:
+       - { path: '/opt/estel/mcommerce/BluCloudMobileMoney/conf/glo/system.properties', regexp1: '192.168.0.87', replace: '192.168.1.181'}
+       - { path: '/opt/estel/mcommerce/BluCloudMobileMoney/conf/glo/system.properties', regexp1: 'glo_uat', replace: 'glo_181'}
+       - { path: '/opt/estel/mcommerce/BluCloudMobileMoney/conf/glo/system.properties', regexp1: '192.168.0.144', replace: '192.168.0.146'}
+
+    -
+     name: copying AgentManagementSystem.war to dest server
+     copy:
+       src: /usr/jboss-as-7.1.1.Final/standalone/deployments/AgentManagementSystem.war
+       dest: /usr/jboss-as-7.1.1.Final/standalone/deployments/
+
+    -
+     name: Deleting AgentManagementSystem.war.undeployed  file on  dest server
+     script: admin.sh
+     register: result
+     failed_when: result.rc == 1

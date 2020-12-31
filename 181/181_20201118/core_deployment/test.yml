@@ -1,0 +1,15 @@
+-
+ name: This Job is for Deploying patch ((core and core lib))
+ hosts: '181'
+ vars:
+    date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+ vars_files:
+     - file.yml
+     - file1.yml
+ tasks:
+    -
+     name: copying core_glocm to dest server
+     copy:
+       src: /opt/estel/mcommerce/core/core_glocm/{{ item }}
+       dest: /tmp/core_glocm/
+     with_items: "{{ coreglocm }}"

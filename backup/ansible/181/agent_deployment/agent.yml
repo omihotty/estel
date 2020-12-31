@@ -1,0 +1,64 @@
+-
+ name: This Job is for Deploying patch ((AGENT PORTAL))
+ hosts: '181'
+ vars:
+    date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+ tasks:
+    -
+     name: creating today date folder for backup purpose
+     file:
+       path: /applogs/backup/{{ date }}
+       state: directory
+
+    -
+     name: creating war folder for backup purpose
+     file:
+       path: /applogs/backup/{{ date }}/war
+       state: directory
+
+    -
+     name: Taking backup of GloPortal
+     command: cp -a /opt/estel/mcommerce/GloPortal /applogs/backup/{{ date }}/
+     args:
+       creates: /applogs/backup/{{ date }}/GloPortal
+
+    -
+     name: Taking backup of AgentManagementPortal.war
+     command: cp -a /usr/jboss-as-7.1.1.Final/standalone/deployments/AgentManagementPortal.war /applogs/backup/{{ date }}/war/
+     args:
+       creates: /applogs/backup/{{ date }}/war/AgentManagementPortal.war
+
+    -
+     name: copying config files to dest server
+     copy:
+       src: /opt/estel/mcommerce/GloPortal/conf/INI
+       dest: /opt/estel/mcommerce/GloPortal/conf/
+       
+    -
+     name: copying labels.prop to dest server
+     copy:
+       src: /opt/estel/mcommerce/GloPortal/conf/messages/labels.prop
+       dest: /opt/estel/mcommerce/GloPortal/conf/messages/
+ 
+    -
+     name: Replace Server IP, Port and DB
+     replace:
+       path: "{{ item.path }}"
+       regexp: "{{ item.regexp1 }}"
+       replace: "{{ item.replace }}"
+     with_items:
+       - { path: '/opt/estel/mcommerce/GloPortal/conf/INI/microbanking.property', regexp1: '192.168.0.87', replace: '192.168.1.181'}
+       - { path: '/opt/estel/mcommerce/GloPortal/conf/INI/microbanking.property', regexp1: 'glo_uat', replace: 'glo_181'}
+       - { path: '/opt/estel/mcommerce/GloPortal/conf/INI/microbanking.property', regexp1: '192.168.0.144', replace: '192.168.0.146'}
+
+    -
+     name: copying AgentManagementPortal.war to dest server
+     copy:
+       src: /usr/jboss-as-7.1.1.Final/standalone/deployments/AgentManagementPortal.war
+       dest: /usr/jboss-as-7.1.1.Final/standalone/deployments/
+
+    -
+     name: Deleting AgentManagementPortal.war.undeployed file on  dest server
+     script: agent.sh
+     register: result
+     failed_when: result.rc == 1 

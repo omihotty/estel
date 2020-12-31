@@ -1,0 +1,10 @@
+-
+ name: This Job is for Deploying patch ((core and core lib))
+ hosts: '181'
+ tasks:
+    -
+     name: Source the bashrc file
+     script: 1.sh
+     register: result
+     failed_when: result.rc == 1
+

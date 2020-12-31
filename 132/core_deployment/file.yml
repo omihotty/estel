@@ -1,0 +1,14 @@
+-
+ corelib:
+  - aop.jar
+  - data.jar
+  - commonutility.jar
+  - service.jar
+  - businessmodel.jar
+-
+ coreglocm:
+  - core.xml
+  - system.properties
+-
+ schema:
+  - agentInfo.xsd

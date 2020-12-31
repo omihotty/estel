@@ -1,0 +1,8 @@
+-
+ name: This Job is for Deploying patch ((core and core lib))
+ hosts: '181'
+ tasks:
+    -
+     name: Source the bashrc file
+     script: openussdengine.sh
+

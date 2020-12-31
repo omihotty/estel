@@ -1,0 +1,58 @@
+-
+ name: This Job is for Deploying patch ((ussd and ussd lib))
+ hosts: '181'
+ vars:
+    date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+ tasks:
+    -
+     name: create today date folder for backup purpose
+     file:
+       path: /applogs/backup/{{ date }}
+       state: directory
+    
+    -
+     name: Taking backup of ussd_lib
+     command: cp -a /opt/estel/mcommerce/ussd_lib /applogs/backup/{{ date }}/
+     args:
+       creates: /applogs/backup/{{ date }}/ussd_lib
+
+    -
+     name: Taking backup of USSD_GLO
+     command: cp -a /opt/estel/mcommerce/clients/ussd/ussd_glo /applogs/backup/{{ date }}/
+     args:   
+       creates: /applogs/backup/{{ date }}/ussd_glo
+
+    -
+     name: copying ussd_lib to dest server
+     copy:
+       src: /opt/estel/mcommerce/ussd_lib
+       dest: /opt/estel/mcommerce/
+    
+    -
+     name: copying ussd_glo to dest server
+     copy:
+       src: /opt/estel/mcommerce/clients/ussd/ussd_glo/{{ item }}
+       dest: /opt/estel/mcommerce/clients/ussd/ussd_glo/
+     with_items:
+       
+       - system.conf
+       - smpp.xml
+       - ussd.conf
+       - glo_openussdclient.jar
+
+    -
+     name: Replace Server IP, Port and DB
+     replace:
+       path: "{{ item.path }}"
+       regexp: "{{ item.regexp1 }}"
+       replace: "{{ item.replace }}"
+     with_items:
+       - { path: '/opt/estel/mcommerce/clients/ussd/ussd_glo/system.conf', regexp1: '192.168.0.87', replace: '192.168.1.181'}
+       - { path: '/opt/estel/mcommerce/clients/ussd/ussd_glo/system.conf', regexp1: 'glo_uat', replace: 'glo_181'}
+       - { path: '/opt/estel/mcommerce/clients/ussd/ussd_glo/system.conf', regexp1: '192.168.0.144', replace: '192.168.0.146'}
+
+
+    -
+     name: RESTARTING USSDENGINE  ON REMOTE SERVER
+     script: openussdengine.sh
+

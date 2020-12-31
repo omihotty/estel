@@ -1,0 +1,12 @@
+-
+ corelib:
+  - aop.jar
+  - commonutility.jar
+  - businessmodel.jar
+-
+ coreglocm:
+  - core.xml
+-
+ schema:
+  - agentInfo.xsd
+  - forgotpassword.xsd

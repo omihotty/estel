@@ -1,0 +1,9 @@
+-
+ name: This
+ hosts: alls
+ tasks:
+    -
+     name: copying blu_lib to dest
+     yum:
+       name: libselinux-python
+       state: present

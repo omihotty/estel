@@ -1,0 +1,38 @@
+-
+ corelib:
+  - aop.jar
+  - smsservice.jar
+  - data.jar
+  - commonutility.jar
+  - version.jar
+  - service.jar
+  - businessmodel.jar
+-
+ coreglocm:
+  - core.xml
+  - en_transtype_glo.prop
+  - en_excepMsg_glo.prop
+  - excepMsg.prop
+  - EmailTemplate.vm
+  - smtp.gmail.com
+  - en_excepMsg_mpss.prop
+  - common.xml
+  - data.xml
+  - databean.xml
+  - ehcache.xsd
+  - en_transtype_mpss.prop
+  - aspect.xml
+  - core.jar
+  - system.properties
+  - ehcache.xml
+  - ehcache-terracotta.xml
+  - core.xml
+-
+ schema:
+  - agentInfo.xsd
+  - merchanttranshistory.xsd
+  - merchanttomerchant.xsd
+  - transreversal.xsd
+  - createSubscriber.xsd
+  - customerwithdrawl.xsd
+  - cashout.xsd
