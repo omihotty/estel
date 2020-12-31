@@ -1,0 +1,40 @@
+pipeline{
+	agent any
+	tools{
+		maven 'maven'
+		jdk 'java'	
+	}
+	stages{
+		stage('PlaybookRun'){
+				steps{
+					sshPublisher(publishers: [sshPublisherDesc(configName: 'ansible server', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
+					
+					cd /etc/ansible/181/subscriber_deployment;
+					ansible-playbook subs.yml -i inventory.yml
+					
+					''', execTimeout: 0, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+				}
+				
+		}
+
+	}
+
+	post{
+		success{
+			emailext attachLog: true, body: '${DEFAULT_CONTENT}', compressLog: true, subject: '${DEFAULT_SUBJECT}', to: 'omkar.saini@esteltelecom.com'
+		}
+		failure{
+			emailext attachLog: true, body: '${DEFAULT_CONTENT}', compressLog: true, subject: '${DEFAULT_SUBJECT}', to: 'omkar.saini@esteltelecom.com'
+		}
+		unstable{
+			emailext attachLog: true, body: '${DEFAULT_CONTENT}', compressLog: true, subject: '${DEFAULT_SUBJECT}', to: 'omkar.saini@esteltelecom.com'
+		}
+		changed{
+			emailext attachLog: true, body: '${DEFAULT_CONTENT}', compressLog: true, subject: '${DEFAULT_SUBJECT}', to: 'omkar.saini@esteltelecom.com'
+		}
+		          
+	
+	}
+
+	
+}	
